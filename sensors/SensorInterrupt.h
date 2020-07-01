@@ -66,7 +66,7 @@ public:
 		if (child == nullptr) return;
 		if (message->getCommand() == C_REQ && message->type == V_STATUS) {
 			// return current status
-			child->setValue(digitalRead(_pin));
+			child->setValue((int)digitalRead(_pin));
 		}
 	};
 

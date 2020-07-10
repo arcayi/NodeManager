@@ -17,45 +17,49 @@
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
  */
-#ifndef SensorInterruptedToggleButton_h
-#define SensorInterruptedToggleButton_h
+#ifndef SensorInterruptedButton_h
+#define SensorInterruptedButton_h
 
 /*
-SensorInterruptedToggleButton: like a combination of SensorInterrupt and
-SensorDigitalIn. it enables sleeping, will be awaken by interrupt, and read the
-toggle_pin to toggle the send value.
+SensorInterruptedButton: like a combination of SensorInterrupt and
+SensorDigitalIn. it enables sleeping, will be awaken by interrupt, and can
+either send the pin value or toggle the send value according to the pin.
 Author: Weihua Yi <weihua.yi@gmail.com>
 */
 
-class SensorInterruptedToggleButton : public Sensor {
+class SensorInterruptedButton : public Sensor {
 protected:
-  int8_t _toggle_pin = -1;
-  int8_t _initial_value_toggle = -1;
+  bool _toggle = true;
+  int8_t _read_pin = -1;
+  int8_t _read_pin_initial_value = -1;
 
 public:
-  SensorInterruptedToggleButton(int8_t toggle_pin, int8_t interrupt_pin,
-                                uint8_t child_id = 0)
+  SensorInterruptedButton(int8_t read_pin, int8_t interrupt_pin,
+                          uint8_t child_id = 0)
       : Sensor(interrupt_pin) {
-    _toggle_pin = toggle_pin;
+    _read_pin = read_pin;
     _name = "InterruptedToggleButton";
     children.allocateBlocks(1);
     new Child(this, INT, nodeManager.getAvailableChildId(child_id), S_BINARY,
               V_STATUS, _name);
     setPinInitialValue(HIGH);
     setInterruptMode(FALLING);
-    setTogglePinInitialValue(LOW);
+    // setReadPinInitialValue(HIGH);
   };
 
-  void setTogglePinInitialValue(int8_t value) { _initial_value_toggle = value; }
+  void setReadPinInitialValue(int8_t value) { _read_pin_initial_value = value; }
+
+  void setToggle(bool toggle) { _toggle = toggle; }
 
   // define what to do during setup
   void onSetup() {
     // set the pin for input
-    pinMode(_pin, INPUT);
-    pinMode(_toggle_pin, INPUT);
-    // set internal pull up/down
-    if (_initial_value_toggle > -1)
-      digitalWrite(_toggle_pin, _initial_value_toggle);
+    pinMode(_pin, INPUT_PULLUP);
+
+    pinMode(_read_pin, INPUT_PULLUP);
+    // // set internal pull up/down
+    // if (_read_pin_initial_value > -1)
+    //   digitalWrite(_read_pin, _read_pin_initial_value);
 
     // do not average the value
     children.get()->setValueProcessing(NONE);
@@ -67,14 +71,15 @@ public:
 #if NODEMANAGER_INTERRUPTS == ON
   void onInterrupt() {
     Child *child = children.get(1);
-    // read the value of the pin
-    // int value = nodeManager.getLastInterruptValue();
-    // int value = digitalRead(_pin);
-    if (digitalRead(_toggle_pin) == LOW) {
-      int value = !child->getLastValueInt();
-
-      child->setValue(value);
-      //   debug(PSTR("onInterrupt,%" PRIu8 "\n"), value);
+    int value = !child->getLastValueInt();
+    int read_pin_value = digitalRead(_read_pin);
+    // debug(PSTR("onInterrupt[%" PRIu8 "],value=%" PRIu8 "\n"),
+    //       child->getChildId(), value);
+    if (_toggle) {
+      if (read_pin_value == LOW)
+        child->setValue(value);
+    }else{
+        child->setValue(read_pin_value);
     }
   }
 #endif

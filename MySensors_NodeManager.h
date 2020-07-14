@@ -28,7 +28,7 @@
 /***********************************
 Platform dependent variation
 */
-#if defined(CHIP_STM32)
+#if defined(CHIP_STM32) || defined(CHIP_STM32_ALL)
 #define isnan std::isnan
 #endif
 

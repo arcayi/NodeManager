@@ -91,6 +91,9 @@ Chip type
 #if defined(ARDUINO_ARCH_STM32F0) || defined(ARDUINO_ARCH_STM32F1) || defined(ARDUINO_ARCH_STM32F3) || defined(ARDUINO_ARCH_STM32F4) || defined(ARDUINO_ARCH_STM32L4)
 #define CHIP_STM32
 #endif
+#if defined(ARDUINO_ARCH_STM32)
+#define CHIP_STM32_ALL
+#endif
 #if defined(ESP8266) || defined(MY_GATEWAY_ESP8266)
 #define CHIP_ESP8266
 #endif
@@ -103,7 +106,7 @@ Chip type
 #if defined (SAMD_SERIES)
 #define CHIP_SAMD
 #endif
-#if !defined(CHIP_ESP8266) && !defined(CHIP_ESP32) && !defined(CHIP_STM32) && !defined(CHIP_NRF5) && !defined(CHIP_SAMD)
+#if !defined(CHIP_ESP8266) && !defined(CHIP_ESP32) && !defined(CHIP_STM32) && !defined(CHIP_STM32_ALL) && !defined(CHIP_NRF5) && !defined(CHIP_SAMD)
 #define CHIP_AVR
 #endif
 

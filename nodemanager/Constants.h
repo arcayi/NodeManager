@@ -111,12 +111,27 @@ Chip type
 #endif
 
 // define interrupt pins
+#if !defined(CHIP_STM32_ALL)
 #ifndef INTERRUPT_PIN_1
 #define INTERRUPT_PIN_1 3
 #endif
 #ifndef INTERRUPT_PIN_2
 #define INTERRUPT_PIN_2 2
 #endif
+#else //!defined(CHIP_STM32_ALL)
+#ifndef INTERRUPT_PIN_0
+#define INTERRUPT_PIN_0 PA0
+#endif
+#ifndef INTERRUPT_PIN_1
+#define INTERRUPT_PIN_1 PA1
+#endif
+#ifndef INTERRUPT_PIN_2
+#define INTERRUPT_PIN_2 PA2
+#endif
+#ifndef INTERRUPT_PIN_3
+#define INTERRUPT_PIN_3 PA3
+#endif
+#endif //!defined(CHIP_STM32_ALL)
 
 // define eeprom addresses
 #define EEPROM_SLEEP_SAVED 0

@@ -34,10 +34,14 @@ protected:
   int8_t _read_pin_initial_value = -1;
 
 public:
-  SensorInterruptedButton(int8_t read_pin, int8_t interrupt_pin,
+  SensorInterruptedButton(int8_t interrupt_pin, int8_t read_pin = -1,
                           uint8_t child_id = 0)
-      : Sensor(interrupt_pin) {
-    _read_pin = read_pin;
+    : Sensor(interrupt_pin) {
+    if (read_pin > -1) {
+      _read_pin = read_pin;
+    } else {
+      _read_pin = interrupt_pin;
+    }
     _name = "InterruptedToggleButton";
     children.allocateBlocks(1);
     new Child(this, INT, nodeManager.getAvailableChildId(child_id), S_BINARY,
@@ -55,11 +59,19 @@ public:
   void onSetup() {
     // set the pin for input
     pinMode(_pin, INPUT_PULLUP);
+    // set internal pull up/down
+    if (_initial_value > -1)
+      digitalWrite(_pin, _initial_value);
 
-    pinMode(_read_pin, INPUT_PULLUP);
-    // // set internal pull up/down
-    // if (_read_pin_initial_value > -1)
-    //   digitalWrite(_read_pin, _read_pin_initial_value);
+    if (_read_pin != _interrupt_pin) {
+      pinMode(_read_pin, INPUT_PULLUP);
+      // set internal pull up/down
+      if (_read_pin_initial_value > -1)
+        digitalWrite(_read_pin, _read_pin_initial_value);
+    }
+#if defined(CHIP_STM32_ALL)
+    // ConfigInterrupt ci;
+#endif // defined(CHIP_STM32_ALL)
 
     // do not average the value
     children.get()->setValueProcessing(NONE);
@@ -72,14 +84,19 @@ public:
   void onInterrupt() {
     Child *child = children.get(1);
     int value = !child->getLastValueInt();
-    int read_pin_value = digitalRead(_read_pin);
-    // debug(PSTR("onInterrupt[%" PRIu8 "],value=%" PRIu8 "\n"),
-    //       child->getChildId(), value);
+    int read_pin_value;
+    if (_read_pin != _interrupt_pin) {
+      read_pin_value = digitalRead(_read_pin);
+    } else {
+      read_pin_value = nodeManager.getLastInterruptValue();
+    }
+    debug(PSTR("onInterrupt[%" PRIu8 "],value=%" PRIu8 "\n"),
+          child->getChildId(), value);
     if (_toggle) {
       if (read_pin_value == LOW)
         child->setValue(value);
-    }else{
-        child->setValue(read_pin_value);
+    } else {
+      child->setValue(read_pin_value);
     }
   }
 #endif

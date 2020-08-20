@@ -32,8 +32,12 @@ protected:
 	DallasTemperature* _sensors;
 
 public:
-	SensorDs18b20(int8_t pin, uint8_t child_id = 0): Sensor(pin) {
+	SensorDs18b20(int8_t pin, uint8_t child_id = 0, bool init=true): Sensor(pin) {
 		_name = "DS18B20";
+		if(init)sensorInit(child_id);
+	}
+
+	void sensorInit(uint8_t child_id = 0){
 		// initialize the library
 		OneWire* oneWire = new OneWire(_pin);
 		_sensors = new DallasTemperature(oneWire);
